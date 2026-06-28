@@ -256,6 +256,19 @@ def build_report(output_path: Path, github_url: str, github_status: str):
         "本实验基于公开息肉检测数据集，训练轻量化 YOLOv5n 模型，实现对内镜图像和视频帧中的息肉目标进行实时检测。"
         "实验重点包括模型训练、mAP 指标评估、FPS 推理速度测试、检测结果可视化以及失败案例原因分析。"
     )
+    add_paragraph(
+        doc,
+        "从应用背景看，结直肠息肉是临床内镜筛查中需要重点关注的异常区域之一。传统人工阅片依赖医生经验，"
+        "在长时间检查、病灶较小或画面质量不稳定的情况下，可能受到注意力下降和主观判断差异的影响。"
+        "基于深度学习的目标检测方法能够在视频流中持续给出候选区域，为辅助筛查、教学演示和离线质控提供技术基础。"
+    )
+    add_paragraph(
+        doc,
+        "与通用机器视觉场景相比，医学内镜检测的难点更加集中。第一，息肉通常与周围黏膜颜色和纹理相近，"
+        "类别判别边界不如行人、车辆等自然图像目标明显；第二，内镜图像存在圆形视野、暗角、镜头反光、液体遮挡和器械干扰；"
+        "第三，视频帧之间存在快速运动和局部模糊，要求模型既有较高的召回率，又不能牺牲实时性。"
+        "因此，本实验选择轻量化 YOLOv5n 作为基础模型，在精度和速度之间取得平衡。"
+    )
 
     add_heading(doc, "二、数据集介绍", 1)
     add_key_value_table(
@@ -275,7 +288,32 @@ def build_report(output_path: Path, github_url: str, github_status: str):
         "本实验只检测一个医学目标类别，因此类别数 nc=1，类别名称为 polyp。"
     )
 
-    add_heading(doc, "三、实验环境与模型配置", 1)
+    add_heading(doc, "三、理论基础与模型方法", 1)
+    add_paragraph(
+        doc,
+        "目标检测任务本质上由分类与定位两部分组成：分类分支判断候选区域属于哪一类目标，定位分支回归边界框坐标。"
+        "YOLO 系列方法将目标检测建模为单阶段回归问题，在一次前向传播中同时输出目标类别、置信度和边界框位置，"
+        "相较两阶段检测器具有更低的推理延迟，适合视频实时检测场景。"
+    )
+    add_paragraph(
+        doc,
+        "YOLOv5 的整体结构可概括为 Backbone、Neck 和 Head 三个部分。Backbone 负责从输入图像中提取多尺度语义特征；"
+        "Neck 通过特征融合增强浅层纹理信息与深层语义信息的表达；Head 在不同尺度上预测边界框、目标置信度和类别概率。"
+        "这种多尺度检测结构对息肉这类大小变化明显、边缘形态不规则的医学目标较为重要。"
+    )
+    add_paragraph(
+        doc,
+        "模型训练过程中，损失函数通常由边界框回归损失、目标置信度损失和类别损失组成。边界框回归用于衡量预测框与真实框的重合程度，"
+        "类别损失用于约束类别判断，置信度损失用于区分前景目标与背景区域。对于单类别息肉检测而言，类别判断相对简单，"
+        "但边界框定位质量会直接影响 mAP@0.5:0.95 等严格指标，因此边界细节仍是模型性能提升的关键。"
+    )
+    add_paragraph(
+        doc,
+        "本实验采用 YOLOv5n 版本，是 YOLOv5 系列中的轻量模型。其参数量和计算量较小，适合在普通 CPU 或低算力设备上验证实时性。"
+        "虽然轻量模型的表达能力弱于更大的 YOLOv5s、YOLOv5m 等版本，但在课堂实验和实时演示场景中更能体现速度优势。"
+    )
+
+    add_heading(doc, "四、实验环境与模型配置", 1)
     add_data_table(
         doc,
         ["项目", "设置"],
@@ -297,17 +335,37 @@ def build_report(output_path: Path, github_url: str, github_status: str):
         "该设置更适合医学图像中较稳定的组织结构，避免过强拼接增强破坏真实内镜纹理。"
     )
 
-    add_heading(doc, "四、实验过程", 1)
-    add_number(doc, "使用 download_dataset_fixed.py 下载并整理 Roboflow 数据集，生成 polyp_dataset/data.yaml。")
-    add_number(doc, "运行 train_polyp.py 加载 YOLOv5n 预训练权重，并在息肉数据集上训练 100 轮。")
-    add_number(doc, "运行 evaluate.py 在验证集上计算 Precision、Recall、F1、mAP@0.5 和 mAP@0.5:0.95。")
-    add_number(doc, "运行 benchmark_fps.py 对同一段视频逐帧推理，分别统计 detect 与 track 的 FPS。")
-    add_number(doc, "运行 inference_track.py 生成带检测框的视频帧截图，作为可视化分析素材。")
+    add_heading(doc, "五、实验设计与技术路线", 1)
+    add_paragraph(
+        doc,
+        "实验整体采用“数据准备、模型训练、定量评估、视频推理、结果分析”的技术路线。"
+        "数据准备阶段重点保证图像、标签与类别配置一致；模型训练阶段利用预训练权重进行迁移学习，"
+        "使模型在有限医学数据上更快获得稳定特征表示；定量评估阶段从准确性和实时性两个维度衡量模型性能；"
+        "可视化分析阶段结合验证集预测图、混淆矩阵、PR 曲线和视频帧截图，对模型优势与不足进行解释。"
+    )
+    add_paragraph(
+        doc,
+        "在训练策略上，本实验没有盲目追求复杂增强，而是采用较克制的数据增强设置。医学图像具有较强的结构真实性，"
+        "过强的拼接或混合增强可能破坏内镜纹理和病灶边界，因此实验保留翻转、亮度和饱和度扰动等较自然的变化，"
+        "同时关闭 Mosaic、Mixup 和 Copy-Paste 等可能引入不真实组合的增强方式。该设计有助于模型学习更接近真实内镜场景的特征。"
+    )
+    add_paragraph(
+        doc,
+        "在评估策略上，单一指标不足以完整描述模型性能。Precision 反映误检控制能力，Recall 反映漏检控制能力，"
+        "mAP@0.5 关注较宽松 IoU 阈值下的检测成功率，mAP@0.5:0.95 则进一步考察边界框精细定位能力。"
+        "对于医学辅助检测而言，漏检通常比少量误检更值得关注，因此在分析时需要综合 Precision、Recall 与 mAP 曲线，"
+        "而不是只依据某一个最高数值判断模型优劣。"
+    )
+    add_paragraph(
+        doc,
+        "在实时性评估上，实验使用同一段内镜视频逐帧推理，分别统计普通检测和带目标跟踪的平均耗时。"
+        "这样可以区分纯检测模型的速度上限与实际视频分析场景中的处理开销，使 FPS 结果更接近真实应用。"
+    )
 
     add_image(doc, "runs/detect/train/results.png", "图 1 训练损失、Precision、Recall 和 mAP 曲线", 6.3)
 
-    add_heading(doc, "五、实验结果", 1)
-    add_heading(doc, "5.1 验证集检测精度", 2)
+    add_heading(doc, "六、实验结果与指标分析", 1)
+    add_heading(doc, "6.1 验证集检测精度", 2)
     add_data_table(
         doc,
         ["指标", "数值", "说明"],
@@ -320,11 +378,24 @@ def build_report(output_path: Path, github_url: str, github_status: str):
         ],
         (1.55, 1.1, 3.85),
     )
+    add_paragraph(
+        doc,
+        "从指标上看，模型 Precision 为 0.8581，说明被模型判定为息肉的目标中，大部分与真实标注一致，误检率处于可接受范围；"
+        "Recall 为 0.8322，说明模型能够发现验证集中多数息肉目标，但仍存在一定漏检。F1-Score 为 0.8450，"
+        "表明 Precision 与 Recall 之间保持了较好的平衡，没有出现只追求高置信度而牺牲召回率，或过度追求召回而导致大量误检的情况。"
+    )
+    add_paragraph(
+        doc,
+        "mAP@0.5 达到 0.8913，说明在 IoU=0.5 的常用阈值下，模型对息肉目标具有较好的整体检测能力。"
+        "但 mAP@0.5:0.95 为 0.6791，低于 mAP@0.5，说明当评价标准逐步提高、要求预测框与真实框更精确重合时，"
+        "模型仍会受到边界不清晰、目标形态变化和图像噪声的影响。这一差异符合医学小目标检测的典型特点：模型通常能够发现目标大致位置，"
+        "但要稳定贴合病灶边缘仍更困难。"
+    )
     add_image(doc, "runs/detect/val-4/confusion_matrix.png", "图 2 验证集混淆矩阵", 5.4)
     add_image(doc, "runs/detect/val-4/BoxPR_curve.png", "图 3 Precision-Recall 曲线", 5.6)
     add_image(doc, "runs/detect/val-4/BoxF1_curve.png", "图 4 F1-Confidence 曲线", 5.6)
 
-    add_heading(doc, "5.2 推理速度", 2)
+    add_heading(doc, "6.2 推理速度", 2)
     add_data_table(
         doc,
         ["模式", "平均耗时", "FPS", "备注"],
@@ -350,8 +421,14 @@ def build_report(output_path: Path, github_url: str, github_status: str):
         f"脚本预热 {fps['warmup_frames']} 帧后计时。detect 模式达到 {fps['detect']['fps']:.2f} FPS，"
         f"track 模式达到 {fps['track']['fps']:.2f} FPS，基本满足课堂作业中实时检测的要求。"
     )
+    add_paragraph(
+        doc,
+        "从实时性角度看，普通检测模式的速度略高于跟踪模式，原因是跟踪需要额外维护目标 ID、关联连续帧中的检测框，"
+        "会带来一定计算开销。即便如此，track 模式仍接近视频原始帧率，说明 YOLOv5n 的轻量结构适合实时视频分析。"
+        "在更高分辨率或更复杂模型下，FPS 可能下降，因此实时检测系统通常需要在图像尺寸、模型规模和硬件平台之间做折中。"
+    )
 
-    add_heading(doc, "六、检测结果可视化", 1)
+    add_heading(doc, "七、检测结果可视化", 1)
     add_image(doc, "runs/detect/val-4/val_batch0_pred.jpg", "图 5 验证集批量预测示例", 6.3)
     add_image(doc, "report/0.23.jpg", "图 6 视频第 0.23 秒检测结果", 4.8)
     add_image(doc, "report/6.63.jpg", "图 7 视频第 6.63 秒检测与跟踪结果", 4.8)
@@ -361,8 +438,14 @@ def build_report(output_path: Path, github_url: str, github_status: str):
         "从视频帧结果可以看到，模型能够在内镜画面中给出息肉边界框、类别名称和置信度；track 模式还会为连续帧中的同一目标分配 ID，"
         "便于观察目标在视频中的位置变化。"
     )
+    add_paragraph(
+        doc,
+        "验证集批量预测图显示，模型在目标较明显、边界较清晰的样本上能够给出较高置信度的检测框；"
+        "视频截图则体现了模型在连续帧中的应用效果。相比静态图像，视频帧还包含运动模糊、视角变化和局部遮挡，"
+        "因此可视化结果不仅用于展示模型效果，也用于判断模型在真实动态场景中的稳定性。"
+    )
 
-    add_heading(doc, "七、失败案例与原因分析", 1)
+    add_heading(doc, "八、失败案例与原因分析", 1)
     add_bullet(doc, "高光和反光区域会造成局部纹理异常，模型可能把强反光或器械边缘误判为息肉。")
     add_bullet(doc, "息肉与正常黏膜颜色接近时，边界框可能偏大或偏小，导致 mAP@0.5:0.95 低于 mAP@0.5。")
     add_bullet(doc, "目标出现在画面边缘、被器械遮挡或面积较小时，模型容易出现漏检。")
@@ -372,8 +455,14 @@ def build_report(output_path: Path, github_url: str, github_status: str):
         "改进方向包括扩充不同设备和不同光照条件下的数据、增加难例负样本、尝试更高容量模型或目标检测与分割联合训练，"
         "并在真实视频流中进一步测试延迟和稳定性。"
     )
+    add_paragraph(
+        doc,
+        "从误差来源看，漏检通常发生在目标面积较小、边缘不完整或颜色与背景高度接近的区域；误检则多与高光、黏液、器械和褶皱有关。"
+        "这说明模型学习到的纹理特征仍可能与非病灶结构发生混淆。若要进一步提高临床场景下的鲁棒性，需要引入更多跨设备、跨患者、"
+        "跨光照条件的数据，并在标注阶段尽可能统一边界定义，减少训练标签本身的不确定性。"
+    )
 
-    add_heading(doc, "八、GitHub 获取项目代码", 1)
+    add_heading(doc, "九、GitHub 获取项目代码", 1)
     if github_status == "pushed":
         status_text = "项目代码已整理并推送到 GitHub，可通过以下方式获取："
     else:
@@ -389,7 +478,7 @@ def build_report(output_path: Path, github_url: str, github_status: str):
         "Roboflow API Key 通过 ROBOFLOW_API_KEY 环境变量读取。"
     )
 
-    add_heading(doc, "九、实验结论", 1)
+    add_heading(doc, "十、实验结论", 1)
     add_paragraph(
         doc,
         "本实验完成了基于 YOLOv5n 的息肉单类别目标检测训练与验证。模型在验证集上取得 mAP@0.5=0.8913，"
@@ -399,6 +488,12 @@ def build_report(output_path: Path, github_url: str, github_status: str):
         doc,
         "同时，严格 IoU 下的 mAP@0.5:0.95 为 0.6791，说明模型对小目标边界细节仍有提升空间。"
         "后续可从数据扩充、难例增强、模型结构和医学场景验证等方向进一步改进。"
+    )
+    add_paragraph(
+        doc,
+        "总体而言，本实验验证了单阶段目标检测模型在医学内镜息肉检测任务中的可行性。YOLOv5n 能够在较低计算开销下完成目标定位，"
+        "适合作为实时检测系统的基础模型；但医学图像任务对可靠性要求较高，后续如果面向更严肃的应用场景，还需要进一步开展多中心数据验证、"
+        "失败案例复盘和模型可解释性分析。"
     )
 
     output_path.parent.mkdir(parents=True, exist_ok=True)
