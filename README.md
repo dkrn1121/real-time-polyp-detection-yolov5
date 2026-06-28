@@ -151,7 +151,6 @@ pip install -r requirements.txt
 
 ## 10. 注意事项
 
-- 不要将 Roboflow API Key 写入代码或提交到 GitHub。
 - 完整数据集默认不纳入仓库，可通过 `download_dataset_fixed.py` 重新下载。
 - `best.pt` 为本实验最佳训练权重，`last.pt` 和完整训练缓存默认不提交。
 - 医学目标检测结果仅用于课程实验展示，不能直接作为临床诊断依据。
