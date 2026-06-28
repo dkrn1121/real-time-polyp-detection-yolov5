@@ -1,0 +1,54 @@
+# Python caches and local environment
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+.env
+
+# IDE / OS files
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+docx_render_check/
+
+# Full dataset is downloaded from Roboflow and should not be committed.
+polyp_dataset/
+
+# Pretrained/base weights can be downloaded automatically by Ultralytics.
+yolov5nu.pt
+yolo26n.pt
+
+# Keep selected reproducibility artifacts from runs/, ignore the rest.
+runs/**
+!runs/
+!runs/detect/
+!runs/detect/train/
+!runs/detect/train/args.yaml
+!runs/detect/train/results.csv
+!runs/detect/train/results.png
+!runs/detect/train/BoxF1_curve.png
+!runs/detect/train/BoxPR_curve.png
+!runs/detect/train/BoxP_curve.png
+!runs/detect/train/BoxR_curve.png
+!runs/detect/train/confusion_matrix.png
+!runs/detect/train/confusion_matrix_normalized.png
+!runs/detect/train/val_batch0_pred.jpg
+!runs/detect/train/val_batch1_pred.jpg
+!runs/detect/train/val_batch2_pred.jpg
+!runs/detect/train/weights/
+!runs/detect/train/weights/best.pt
+!runs/detect/val-4/
+!runs/detect/val-4/BoxF1_curve.png
+!runs/detect/val-4/BoxPR_curve.png
+!runs/detect/val-4/BoxP_curve.png
+!runs/detect/val-4/BoxR_curve.png
+!runs/detect/val-4/confusion_matrix.png
+!runs/detect/val-4/confusion_matrix_normalized.png
+!runs/detect/val-4/val_batch0_pred.jpg
+!runs/detect/val-4/val_batch1_pred.jpg
+!runs/detect/val-4/val_batch2_pred.jpg
+
+# Generated output videos are reproducible; keep JPG frames for the report.
+report/tracked_output_video.mp4

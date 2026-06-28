@@ -1,0 +1,9 @@
+{
+  "precision": 0.8581023373874362,
+  "recall": 0.8322025702840268,
+  "f1_score": 0.8449540287075292,
+  "map50": 0.8912804911470839,
+  "map50_95": 0.6791408953861295,
+  "model_path": "runs/detect/train/weights/best.pt",
+  "dataset": "./polyp_dataset/data.yaml"
+}

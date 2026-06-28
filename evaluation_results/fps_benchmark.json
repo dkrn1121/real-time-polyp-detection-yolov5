@@ -1,0 +1,23 @@
+{
+  "model_path": "runs\\detect\\train\\weights\\best.pt",
+  "video_path": "tracked_output_video.mp4",
+  "device": "cpu",
+  "imgsz": 640,
+  "warmup_frames": 10,
+  "video": {
+    "source_fps": 30.0,
+    "width": 480.0,
+    "height": 360.0,
+    "frame_count": 253.0
+  },
+  "detect": {
+    "avg_ms_per_frame": 34.15281462447217,
+    "fps": 29.280163611565143,
+    "elapsed_seconds": 8.64066209999146
+  },
+  "track": {
+    "avg_ms_per_frame": 35.90718181822228,
+    "fps": 27.849581876473444,
+    "elapsed_seconds": 9.084517000010237
+  }
+}
